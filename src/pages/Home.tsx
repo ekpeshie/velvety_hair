@@ -4,6 +4,7 @@ import { asset } from '../lib/format';
 import { ProductCard } from '../components/ProductCard';
 import { TextureArt } from '../components/TextureArt';
 import { ArrowIcon } from '../components/Icons';
+import { HeroStage } from '../components/HeroStage';
 
 const PROMISES = [
   { title: '100% human hair', body: 'Colour it, curl it, straighten it. It behaves like your own because it is real hair.' },
@@ -15,26 +16,7 @@ export function Home() {
   const featured = PRODUCTS.filter((p) => p.featured);
   return (
     <>
-      <section className="hero">
-        <div className="hero-inner">
-          <div className="hero-media">
-            <img src={asset('images/campaign-hero.jpg')} alt="Model in a cocoa dress wearing glossy brown body wave hair, with the velvety. HAIRS logo" width="1400" height="1400" />
-          </div>
-          <div className="hero-copy">
-            <div className="eyebrow accent">The Signature Collection</div>
-            <h1 className="display">Hair that feels like velvet.</h1>
-            <p className="lede">Premium human-hair units with HD lace, pre-plucked and ready to wear from the first day.</p>
-            <div className="btn-row">
-              <Link to="/shop" className="btn btn-primary">
-                Shop all units
-              </Link>
-              <Link to="/product/body-wave" className="btn btn-ghost">
-                See the Body Wave
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      <HeroStage />
 
       <section className="band band-light" aria-labelledby="textures-title">
         <div className="wrap">
