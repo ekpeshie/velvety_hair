@@ -1,6 +1,6 @@
 /*
  * Keeps the last order in this browser so the confirmation page can show it.
- * In production, your server should create and store orders after verifying payment.
+ * Paid orders are confirmed by our server (api/verify.ts) and recorded in the Paystack dashboard.
  */
 
 export type Order = {
@@ -15,6 +15,8 @@ export type Order = {
   fee: number;
   total: number;
   paid: boolean;
+  /** paid with Paystack test keys: no real money moved */
+  test?: boolean;
 };
 
 let memory: Order | null = null;

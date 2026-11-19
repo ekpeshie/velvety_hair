@@ -3,7 +3,7 @@ import { DELIVERY, getProduct, type DeliveryId } from '../data/products';
 import { lineTotal, useCart } from '../store/cart';
 import { money } from '../lib/format';
 import { Link, navigate } from '../lib/router';
-import { PAYSTACK_KEY, payWithPaystack } from '../lib/paystack';
+import { PAYSTACK_KEY, payWithPaystack, verifyPayment } from '../lib/paystack';
 import { saveOrder } from '../lib/orders';
 import { ProductImage } from '../components/ProductCard';
 
@@ -33,7 +33,7 @@ export function Checkout() {
   const [form, setForm] = useState<Form>(EMPTY);
   const [delivery, setDelivery] = useState<DeliveryId>('lagos');
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
-  const [busy, setBusy] = useState(false);
+  const [busy, setBusy] = useState<false | 'paying' | 'confirming'>(false);
   const [payError, setPayError] = useState('');
 
   const option = DELIVERY.find((d) => d.id === delivery)!;
@@ -62,39 +62,65 @@ export function Checkout() {
       document.getElementById(`f-${Object.keys(errs)[0]}`)?.focus();
       return;
     }
-    setBusy(true);
+    setBusy('paying');
     setPayError('');
-    const reference = 'VH' + Date.now().toString(36).toUpperCase();
-    try {
-      let paid = false;
-      if (PAYSTACK_KEY) {
-        const result = await payWithPaystack({ email: form.email, amountNaira: total, reference, phone: form.phone, name: form.name });
-        paid = result === 'paid';
-        if (!paid) {
+    const reference = 'VH' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
+    const address = delivery === 'pickup' ? '' : `${form.address}, ${form.city}, ${form.state}`;
+    let paid = false;
+    let test = false;
+    if (PAYSTACK_KEY) {
+      try {
+        const result = await payWithPaystack({
+          email: form.email,
+          amountNaira: total,
+          reference,
+          phone: form.phone,
+          name: form.name,
+          details: {
+            items: lines.map((l) => `${getProduct(l.slug)!.name} ${l.length} inch x${l.qty}`).join(', '),
+            delivery: option.label,
+            address,
+            notes: form.notes.trim(),
+          },
+        });
+        if (result !== 'paid') {
           setBusy(false);
           setPayError('Payment was not completed. Your bag is saved, so you can try again.');
           return;
         }
+      } catch {
+        setBusy(false);
+        setPayError('We could not reach the payment provider. Check your connection and try again.');
+        return;
       }
-      saveOrder({
-        id: reference,
-        name: form.name,
-        email: form.email,
-        delivery: option.label,
-        deliveryDetail: option.detail,
-        address: delivery === 'pickup' ? '' : `${form.address}, ${form.city}, ${form.state}`,
-        lines: lines.map((l) => ({ ...l, name: getProduct(l.slug)!.name, total: lineTotal(l) })),
-        subtotal,
-        fee: option.fee,
-        total,
-        paid,
-      });
-      clear();
-      navigate(`/order/${reference}`);
-    } catch {
-      setBusy(false);
-      setPayError('We could not reach the payment provider. Check your connection and try again.');
+      setBusy('confirming');
+      try {
+        const v = await verifyPayment(reference, lines, delivery);
+        paid = true;
+        test = v.test;
+      } catch {
+        // The customer may have been charged, so give them the reference rather than a dead end.
+        setBusy(false);
+        setPayError(`We could not confirm your payment yet. If you were charged, message us with reference ${reference} and we will sort it out.`);
+        return;
+      }
     }
+    saveOrder({
+      id: reference,
+      name: form.name,
+      email: form.email,
+      delivery: option.label,
+      deliveryDetail: option.detail,
+      address,
+      lines: lines.map((l) => ({ ...l, name: getProduct(l.slug)!.name, total: lineTotal(l) })),
+      subtotal,
+      fee: option.fee,
+      total,
+      paid,
+      test,
+    });
+    clear();
+    navigate(`/order/${reference}`);
   };
 
   const field = (k: keyof Form, label: string, props: Record<string, unknown> = {}) => (
@@ -198,13 +224,16 @@ export function Checkout() {
                 <span>{money(total)}</span>
               </div>
             </div>
+            <p className="sr-only" aria-live="polite">
+              {busy === 'confirming' ? 'Confirming your payment' : ''}
+            </p>
             {payError && (
               <p className="error" role="alert">
                 {payError}
               </p>
             )}
-            <button className="btn btn-primary btn-block" type="submit" disabled={busy}>
-              {busy ? 'Processing…' : PAYSTACK_KEY ? `Pay ${money(total)}` : `Place order · ${money(total)}`}
+            <button className="btn btn-primary btn-block" type="submit" disabled={!!busy}>
+              {busy === 'confirming' ? 'Confirming payment…' : busy ? 'Processing…' : PAYSTACK_KEY ? `Pay ${money(total)}` : `Place order · ${money(total)}`}
             </button>
             <p className="muted small center">
               {PAYSTACK_KEY ? 'Secure payment by Paystack. Cards, bank transfer and USSD.' : 'Demo mode: no payment is taken. Add a Paystack key to go live.'}

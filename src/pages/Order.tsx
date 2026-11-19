@@ -16,7 +16,11 @@ export function OrderConfirmed({ id }: { id: string }) {
         {order ? (
           <>
             <p className="lede-dark">
-              {order.paid ? 'Your payment went through.' : 'Your order is in (demo mode, no payment taken).'} A receipt goes to {order.email}.
+              {order.paid
+                ? order.test
+                  ? 'Your test payment is confirmed. No real money moved.'
+                  : 'Your payment is confirmed.'
+                : 'Your order is in (demo mode, no payment taken).'} A receipt goes to {order.email}.
             </p>
             <div className="panel">
               <ul className="summary-lines plain">
