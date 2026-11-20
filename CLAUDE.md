@@ -10,7 +10,8 @@ React 18 + TypeScript + Vite. No UI library, no router library, no CSS framework
 ## Conventions
 - Brand tokens are CSS variables at the top of `src/styles.css`. Use them; do not add raw hex values elsewhere.
 - Type: Cormorant Garamond italic 500 for headlines (`.display`, `.h1`, `.h2`), Inter for everything else. The script face lives only in the logo images.
-- Eyebrow labels: `.eyebrow` (12px, 600, uppercase, wide tracking).
+- Look: light and airy (inspired by regrocery.co). Blush-soft page, cocoa (`--cocoa`) for headings, links, prices and product names; espresso for body text. The cocoa footer is the only solid colour block. Product photos sit on `--blush-sunken` tiles with `--radius-tile`. Product cards show photo, name, price and at most a small outlined `.tag`.
+- Eyebrow labels: `.eyebrow` (12px, 600, uppercase, wide tracking). Use sparingly: only to name a page above a poetic headline.
 - Buttons are pills: `.btn`, `.btn-primary`, `.btn-ghost`. One primary per view.
 - Copy voice: warm, short, sentence case. No em-dashes. No exclamation marks.
 - Navigation: use `Link` and `navigate` from `src/lib/router.tsx`, never raw `<a href="/...">` for internal links.

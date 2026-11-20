@@ -203,7 +203,7 @@ export function HeroStage() {
             <>
               <button
                 type="button"
-                className="stage-enter"
+                className="btn btn-on-dark stage-enter"
                 onClick={(e) => {
                   e.stopPropagation();
                   startMorph();
@@ -218,7 +218,6 @@ export function HeroStage() {
       )}
 
       <div className="stage-head wrap">
-        <div className="eyebrow accent">The Signature Collection</div>
         <h1 className="stage-title">Hair that feels like velvet.</h1>
       </div>
 

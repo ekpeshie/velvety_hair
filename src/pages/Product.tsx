@@ -72,7 +72,6 @@ function ProductInfo({ product }: { product: Product }) {
 
   return (
     <div className="pdp-info">
-      <div className="eyebrow">{product.collection}</div>
       <h1 className="display-dark">{product.name}</h1>
       <p className="pdp-price" aria-live="polite">
         {money(price)}

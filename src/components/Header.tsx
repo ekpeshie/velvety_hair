@@ -28,7 +28,7 @@ export function Header() {
             {menu ? <CloseIcon /> : <MenuIcon />}
           </button>
           <Link to="/" className="logo" aria-label="Velvety Hairs home">
-            <img src={asset('images/logo-blush.png')} alt="" width="128" height="63" />
+            <img src={asset('images/logo-espresso.png')} alt="" width="128" height="63" />
           </Link>
           <nav className={`nav ${menu ? 'is-open' : ''}`} aria-label="Main">
             {NAV.map((n) => (

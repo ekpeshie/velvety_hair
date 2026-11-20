@@ -24,15 +24,15 @@ export function ProductCard({ product }: { product: Product }) {
       <Link to={`/product/${product.slug}`} className="card-link" aria-label={`${product.name}, from ${money(fromPrice(product))}`}>
         <div className="card-media">
           <ProductImage product={product} />
-          {product.badge && <span className={`badge ${product.badge === 'New in' ? 'badge-solid' : 'badge-outline'}`}>{product.badge}</span>}
         </div>
         <div className="card-body">
-          <div className="eyebrow">{product.collection}</div>
           <h3 className="card-title">{product.name}</h3>
-          <p className="card-spec">
-            {product.lace} · {product.density} · {product.colour}
-          </p>
           <p className="price">From {money(fromPrice(product))}</p>
+          {product.badge && (
+            <div className="tags">
+              <span className="tag">{product.badge}</span>
+            </div>
+          )}
         </div>
       </Link>
     </article>

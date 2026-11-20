@@ -25,7 +25,6 @@ export function Shop({ filter }: { filter?: string }) {
   return (
     <section className="band band-light page-top">
       <div className="wrap">
-        <div className="eyebrow">Shop</div>
         <h1 className="h1">{title}</h1>
         {texture && <p className="lede-dark">{texture.note}</p>}
 

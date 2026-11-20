@@ -85,7 +85,6 @@ export function ProductRail({ slug }: { slug: string }) {
             onClick={i === live ? undefined : () => goTo(i)}
           >
             <ProductImage product={p} eager={i === index} />
-            {p.badge && <span className={`badge ${p.badge === 'New in' ? 'badge-solid' : 'badge-outline'}`}>{p.badge}</span>}
           </li>
         ))}
       </ul>
