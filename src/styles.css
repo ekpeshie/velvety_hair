@@ -27,6 +27,9 @@
   --line: #e6d2ce;
   --line-dark: #4d423e;
   --danger: #a3392a;
+  /* hair colour swatches for the colour filter */
+  --swatch-natural-black: #1f1a19;
+  --swatch-chestnut: #6b3a26;
 
   --serif: 'Cormorant Garamond', Cormorant, Georgia, serif;
   --sans: Inter, 'Helvetica Neue', Arial, sans-serif;
@@ -921,17 +924,6 @@ main:focus {
   filter: saturate(0.4);
 }
 /* ---------- Shop ---------- */
-.toolbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--space-4);
-  margin-top: var(--space-8);
-}
-.chips {
-  display: flex;
-  gap: var(--space-2);
-}
 .chip {
   flex: none;
   display: inline-flex;
@@ -953,14 +945,6 @@ main:focus {
   border-color: var(--cocoa);
   color: var(--blush);
 }
-.sort {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  flex: none;
-  font-size: 14px;
-  color: var(--ink-muted);
-}
 select,
 input,
 textarea {
@@ -972,15 +956,6 @@ textarea {
   padding: 10px 12px;
   width: 100%;
 }
-.sort select {
-  width: auto;
-  min-height: 40px;
-  padding: 6px 14px;
-  border-color: var(--line);
-  border-radius: var(--radius-pill);
-  background-color: transparent;
-  color: var(--cocoa);
-}
 textarea {
   resize: vertical;
 }
@@ -990,6 +965,364 @@ textarea {
 .empty {
   padding: var(--space-12) 0;
   text-align: center;
+}
+
+/* Filters in use, above the results */
+.applied {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3) var(--space-6);
+  margin: var(--space-6) 0 var(--space-8);
+}
+.applied .count {
+  margin: 0;
+}
+.applied-pills {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chip-x {
+  background: none;
+  cursor: pointer;
+  gap: 6px;
+  min-height: 36px;
+}
+.chip-x span {
+  font-size: 16px;
+  line-height: 1;
+}
+.empty {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+}
+.empty .btn {
+  margin-top: var(--space-4);
+}
+
+/* ---------- Filter dock ----------
+   A dark bar at the bottom; panels rise from beneath it. The panel on top is in
+   focus. The one under it is muted (sunken tone, grey icons, no shadow, sunk a
+   little), and anything lower tucks away to a sliver. */
+.dock {
+  position: sticky;
+  bottom: max(16px, env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  justify-content: center;
+  margin-top: var(--space-12);
+  pointer-events: none;
+}
+.dock-stack {
+  position: relative;
+  pointer-events: auto;
+  max-width: 100%;
+  display: flex;
+  justify-content: center;
+}
+.dock-panels {
+  position: absolute;
+  left: 50%;
+  bottom: calc(100% + 8px);
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 32px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  transition: bottom 0.3s ease;
+}
+.dock-stack.is-deep .dock-panels {
+  bottom: calc(100% - 2px);
+}
+.dock-layer {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  border-radius: 22px;
+  max-width: calc(100vw - 32px);
+  transition:
+    transform 0.3s ease,
+    background-color 0.3s ease,
+    box-shadow 0.3s ease,
+    height 0.3s ease,
+    width 0.3s ease,
+    margin 0.3s ease;
+}
+
+/* the bar */
+.dock-bar {
+  height: 76px;
+  background: var(--espresso);
+  color: var(--ink-muted-dark);
+  box-shadow: 0 16px 40px rgb(28 23 22 / 0.28);
+}
+.dock-history {
+  flex: none;
+  display: flex;
+  height: 64px;
+  border-radius: 16px;
+  background: var(--espresso-raised);
+}
+.dock-sep {
+  flex: none;
+  width: 1px;
+  height: 28px;
+  margin: 0 4px;
+  background: rgb(250 227 227 / 0.22);
+}
+.dock-panel .dock-sep {
+  background: var(--line);
+}
+.dock-cats,
+.dock-opts {
+  display: flex;
+  gap: 2px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.dock-cats::-webkit-scrollbar,
+.dock-opts::-webkit-scrollbar {
+  display: none;
+}
+.dock-tab,
+.dock-opt {
+  position: relative;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-width: 64px;
+  height: 64px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+.dock-label {
+  font: 500 12px/14px var(--sans);
+  white-space: nowrap;
+}
+.dock-icon {
+  display: grid;
+  place-items: center;
+  height: 24px;
+  transition: filter 0.3s ease;
+}
+.dock-tab:hover {
+  color: var(--blush);
+}
+.dock-tab.is-open {
+  background: var(--blush-soft);
+  color: var(--cocoa);
+}
+.dock-icon-btn {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 64px;
+  border: 0;
+  border-radius: 16px;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+}
+.dock-bar .dock-icon-btn:hover:not(:disabled),
+.dock-more.is-open {
+  color: var(--blush);
+}
+.dock-icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.dock-badge {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: var(--radius-pill);
+  background: var(--blush);
+  color: var(--cocoa);
+  font: 600 10px/16px var(--sans);
+  text-align: center;
+}
+.dock-panel .dock-badge,
+.dock-tab.is-open .dock-badge {
+  background: var(--cocoa);
+  color: var(--blush);
+}
+.dock-bar :focus-visible {
+  outline-color: var(--rose-gold);
+}
+
+/* panels */
+.dock-panel {
+  height: 76px;
+  background: #fff;
+  color: var(--ink-muted);
+  border: 1px solid var(--line);
+  box-shadow: 0 12px 32px rgb(74 29 21 / 0.12);
+}
+.dock-opt:hover {
+  background: var(--blush-soft);
+  color: var(--cocoa);
+}
+.dock-opt.is-on {
+  background: var(--blush);
+  color: var(--cocoa);
+}
+.dock-num {
+  font: 600 13px/24px var(--sans);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dock-num.is-lg {
+  font-size: 18px;
+}
+.dock-swatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--swatch);
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 0 1.5px var(--line);
+}
+.dock-opt.is-on .dock-swatch {
+  box-shadow:
+    inset 0 0 0 2px #fff,
+    0 0 0 2px var(--cocoa);
+}
+.dock-swatch.is-ring {
+  background: conic-gradient(var(--swatch-natural-black), var(--swatch-chestnut), var(--caramel), var(--rose-gold), var(--blush), var(--swatch-natural-black));
+  -webkit-mask: radial-gradient(circle, transparent 5px, #000 5.5px);
+  mask: radial-gradient(circle, transparent 5px, #000 5.5px);
+  box-shadow: none;
+}
+.dock-text-btn {
+  flex: none;
+  min-height: 44px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--cocoa);
+  font: 500 13px/1 var(--sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.dock-panel .dock-icon-btn {
+  color: var(--ink-muted);
+}
+.dock-panel .dock-icon-btn:hover {
+  color: var(--cocoa);
+}
+
+/* the panel in focus rises from beneath; lower layers sit on top while it does */
+.dock-panel[data-depth='0'] {
+  z-index: 1;
+  animation: dock-rise 0.32s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.dock-panel[data-depth='1'] {
+  z-index: 2;
+}
+.dock-bar {
+  position: relative;
+  z-index: 3;
+}
+@keyframes dock-rise {
+  from {
+    transform: translateY(40px) scale(0.96);
+    opacity: 0;
+  }
+}
+
+/* one under the top: muted, not just faded */
+.dock-panel[data-depth='1'] {
+  background: var(--blush-soft);
+  box-shadow: none;
+  transform: translateY(4px) scale(0.97);
+}
+.dock-panel[data-depth='1'] .dock-icon {
+  filter: grayscale(1) contrast(0.6) brightness(1.15);
+}
+.dock-panel[data-depth='1'] .dock-opt {
+  color: var(--cocoa-faded);
+}
+.dock-panel[data-depth='1'] .dock-opt.is-on {
+  background: var(--blush-sunken);
+  color: var(--ink-muted);
+}
+
+/* further down: tucked to a sliver */
+.dock-layer[data-depth='2'] {
+  height: 12px;
+  padding: 0;
+  overflow: hidden;
+  box-shadow: none;
+  border-radius: 0 0 14px 14px;
+  width: calc(100% - 48px);
+}
+.dock-panel[data-depth='2'] {
+  margin-top: -14px;
+  background: var(--blush-sunken);
+}
+.dock-bar[data-depth='2'] {
+  background: var(--espresso-raised);
+}
+.dock-layer[data-depth='2'] > * {
+  visibility: hidden;
+}
+
+@media (max-width: 600px) {
+  .dock-layer {
+    padding: 4px;
+    gap: 2px;
+  }
+  .dock-bar,
+  .dock-panel {
+    height: 72px;
+  }
+  .dock-tab,
+  .dock-opt {
+    min-width: 56px;
+    padding: 0 6px;
+  }
+  .dock-icon-btn {
+    width: 38px;
+  }
+  .dock-sep {
+    margin: 0 2px;
+  }
+  .dock-history.is-idle,
+  .dock-sep.is-idle {
+    display: none;
+  }
+  /* a soft fade on the right says the row scrolls */
+  .dock-cats,
+  .dock-opts {
+    -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+    mask-image: linear-gradient(to right, #000 calc(100% - 20px), transparent);
+  }
 }
 
 /* ---------- Product page ---------- */
@@ -1749,17 +2082,6 @@ fieldset.panel > legend + * {
 }
 
 @media (max-width: 600px) {
-  .toolbar {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .chips {
-    margin-right: calc(-1 * max(5vw, 16px));
-    padding-right: max(5vw, 16px);
-  }
-  .sort {
-    justify-content: space-between;
-  }
   .card-title,
   .card-body .price {
     font-size: 15px;

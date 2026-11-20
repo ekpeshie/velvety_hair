@@ -41,7 +41,8 @@ src/
   lib/router.tsx        small router (path URLs; hash mode for previews)
   lib/paystack.ts       Paystack inline checkout
   lib/orders.ts         last order for the confirmation page
-  components/           Header, Footer, CartDrawer, HeroStage, ProductCard, ProductGallery, TextureArt, Icons
+  components/           Header, Footer, CartDrawer, HeroStage, ProductCard, ProductGallery, FilterDock, TextureArt, Icons
+  lib/filters.ts        shop filters: options, matching, sorting
   pages/                Home, Shop, Product, Checkout, Order, Info (care + FAQ), NotFound
   styles.css            all styles, brand tokens at the top
 api/
