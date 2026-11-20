@@ -14,11 +14,28 @@ export type Filters = {
   lace: string[];
   colour: string[];
   price: string[];
-  newOnly: boolean;
+  /** the list on the left: 'all', 'new', 'best' or a collection id */
+  view: string;
   sort: Sort;
 };
 
-export const EMPTY_FILTERS: Filters = { texture: [], length: [], lace: [], colour: [], price: [], newOnly: false, sort: 'featured' };
+export const EMPTY_FILTERS: Filters = { texture: [], length: [], lace: [], colour: [], price: [], view: 'all', sort: 'featured' };
+
+const slugify = (s: string) => s.toLowerCase().replace(/^the /, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+
+/** The list on the left of the shop: quick views, then collections. */
+export const VIEWS: { id: string; label: string; group: 'quick' | 'collection'; pick: (p: Product) => boolean }[] = [
+  { id: 'all', label: 'All', group: 'quick', pick: () => true },
+  { id: 'new', label: 'New in', group: 'quick', pick: (p) => p.badge === 'New in' },
+  { id: 'best', label: 'Bestsellers', group: 'quick', pick: (p) => p.badge === 'Bestseller' },
+  ...[...new Set(PRODUCTS.map((p) => p.collection))].map((c) => ({
+    id: slugify(c),
+    label: c,
+    group: 'collection' as const,
+    pick: (p: Product) => p.collection === c,
+  })),
+];
+export const viewOf = (id: string) => VIEWS.find((v) => v.id === id) ?? VIEWS[0];
 
 /** Length bands, each opening a row of exact lengths. */
 export const LENGTH_BANDS = [
@@ -52,7 +69,7 @@ export const PRICE_BANDS = [
 ] as const;
 
 export function matches(p: Product, f: Filters) {
-  if (f.newOnly && p.badge !== 'New in') return false;
+  if (!viewOf(f.view).pick(p)) return false;
   if (f.texture.length && !f.texture.includes(p.texture)) return false;
   if (f.lace.length && !f.lace.includes(p.lace)) return false;
   if (f.colour.length && !f.colour.includes(p.colour)) return false;
@@ -76,13 +93,13 @@ export function results(f: Filters) {
 
 export const toggle = <T,>(list: T[], v: T) => (list.includes(v) ? list.filter((x) => x !== v) : [...list, v]);
 
-export const activeCount = (f: Filters) => f.texture.length + f.length.length + f.lace.length + f.colour.length + f.price.length + (f.newOnly ? 1 : 0);
+export const activeCount = (f: Filters) => f.texture.length + f.length.length + f.lace.length + f.colour.length + f.price.length;
 
 export const textureLabel = (t: Texture) => TEXTURES.find((x) => x.id === t)?.label ?? t;
 
-/** Start from a /shop/:filter link, e.g. /shop/curly or /shop/new. */
+/** Start from a /shop/:filter link, e.g. /shop/curly, /shop/new or /shop/bob-edit. */
 export function fromRoute(filter?: string): Filters {
-  if (filter === 'new') return { ...EMPTY_FILTERS, newOnly: true };
+  if (filter && VIEWS.some((v) => v.id === filter)) return { ...EMPTY_FILTERS, view: filter };
   if (TEXTURES.some((t) => t.id === filter)) return { ...EMPTY_FILTERS, texture: [filter as Texture] };
   return EMPTY_FILTERS;
 }

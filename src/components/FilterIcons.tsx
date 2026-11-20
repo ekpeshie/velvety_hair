@@ -55,12 +55,6 @@ export const SortIcon = () => (
     <path d="M7 4v16M3.5 7.5L7 4l3.5 3.5M17 20V4M13.5 16.5L17 20l3.5-3.5" />
   </svg>
 );
-export const SparkleIcon = () => (
-  <svg {...base}>
-    <path d="M12 3.5c.6 4.3 2.2 5.9 6.5 6.5-4.3.6-5.9 2.2-6.5 6.5-.6-4.3-2.2-5.9-6.5-6.5 4.3-.6 5.9-2.2 6.5-6.5z" />
-    <path d="M18.5 16v4M16.5 18h4" />
-  </svg>
-);
 export const ClearIcon = () => (
   <svg {...base}>
     <path d="M6 6l12 12M18 6L6 18" />

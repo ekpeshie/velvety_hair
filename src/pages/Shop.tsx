@@ -3,7 +3,8 @@ import { TEXTURES } from '../data/products';
 import { useMoney } from '../lib/currency';
 import { ProductCard } from '../components/ProductCard';
 import { FilterDock } from '../components/FilterDock';
-import { EMPTY_FILTERS, PRICE_BANDS, activeCount, fromRoute, results, textureLabel, type Filters } from '../lib/filters';
+import { EMPTY_FILTERS, PRICE_BANDS, VIEWS, activeCount, fromRoute, results, textureLabel, viewOf, type Filters } from '../lib/filters';
+import { PRODUCTS } from '../data/products';
 
 type History = { past: Filters[]; now: Filters; future: Filters[] };
 
@@ -16,10 +17,13 @@ export function Shop({ filter }: { filter?: string }) {
   const change = (next: Filters) => setH((x) => ({ past: [...x.past, x.now].slice(-50), now: next, future: [] }));
   const undo = () => setH((x) => (x.past.length ? { past: x.past.slice(0, -1), now: x.past[x.past.length - 1], future: [x.now, ...x.future] } : x));
   const redo = () => setH((x) => (x.future.length ? { past: [...x.past, x.now], now: x.future[0], future: x.future.slice(1) } : x));
-  const clearAll = () => change({ ...EMPTY_FILTERS, sort: f.sort });
+  // Clears the filters but keeps the collection you are looking at, and the sort.
+  const clearAll = () => change({ ...EMPTY_FILTERS, view: f.view, sort: f.sort });
 
-  const onlyTexture = f.texture.length === 1 && activeCount(f) === 1 ? TEXTURES.find((t) => t.id === f.texture[0]) : undefined;
-  const title = f.newOnly && activeCount(f) === 1 ? 'New in' : onlyTexture ? onlyTexture.label : 'All units';
+  const view = viewOf(f.view);
+  const onlyTexture = f.view === 'all' && f.texture.length === 1 && activeCount(f) === 1 ? TEXTURES.find((t) => t.id === f.texture[0]) : undefined;
+  const title = onlyTexture ? onlyTexture.label : view.id === 'all' ? 'All units' : view.label;
+  const total = (id: string) => PRODUCTS.filter(viewOf(id).pick).length;
 
   const priceText = (id: string) => {
     const b = PRICE_BANDS.find((x) => x.id === id)!;
@@ -28,7 +32,6 @@ export function Shop({ filter }: { filter?: string }) {
 
   // What is applied, as removable pills above the results.
   const pills: { key: string; label: string; remove: () => void }[] = [
-    ...(f.newOnly ? [{ key: 'new', label: 'New in', remove: () => change({ ...f, newOnly: false }) }] : []),
     ...f.texture.map((t) => ({ key: `t-${t}`, label: textureLabel(t), remove: () => change({ ...f, texture: f.texture.filter((x) => x !== t) }) })),
     ...[...f.length].sort((a, b) => a - b).map((l) => ({ key: `l-${l}`, label: `${l}″`, remove: () => change({ ...f, length: f.length.filter((x) => x !== l) }) })),
     ...f.lace.map((l) => ({ key: `la-${l}`, label: l.replace(' HD ', ' '), remove: () => change({ ...f, lace: f.lace.filter((x) => x !== l) }) })),
@@ -38,8 +41,30 @@ export function Shop({ filter }: { filter?: string }) {
 
   return (
     <section className="band band-light page-top shop">
-      <div className="wrap">
-        <h1 className="h1">{title}</h1>
+      <div className="wrap shop-layout">
+        <nav className="shop-nav" aria-label="Collections">
+          {(['quick', 'collection'] as const).map((group) => (
+            <ul key={group} className="shop-nav-list">
+              {VIEWS.filter((v) => v.group === group).map((v) => (
+                <li key={v.id}>
+                  <button
+                    type="button"
+                    className={`shop-nav-item ${f.view === v.id ? 'is-active' : ''}`}
+                    aria-current={f.view === v.id ? 'true' : undefined}
+                    aria-label={`${v.label}, ${total(v.id)} ${total(v.id) === 1 ? 'unit' : 'units'}`}
+                    onClick={() => f.view !== v.id && change({ ...f, view: v.id })}
+                  >
+                    {v.label}
+                    <sup aria-hidden="true">{total(v.id)}</sup>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          ))}
+        </nav>
+
+        <div className="shop-main">
+        <h1 className="h1 shop-title">{title}</h1>
         {onlyTexture && <p className="lede-dark">{onlyTexture.note}</p>}
 
         <div className="applied">
@@ -89,6 +114,7 @@ export function Shop({ filter }: { filter?: string }) {
           canRedo={h.future.length > 0}
           onClearAll={clearAll}
         />
+        </div>
       </div>
     </section>
   );

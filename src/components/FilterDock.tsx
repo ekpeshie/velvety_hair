@@ -13,7 +13,7 @@ import {
   type Filters,
   type Sort,
 } from '../lib/filters';
-import { ClearIcon, LaceIcon, LengthIcon, MoreIcon, PriceIcon, RedoIcon, SortIcon, SparkleIcon, TextureGlyph, UndoIcon } from './FilterIcons';
+import { ClearIcon, LaceIcon, LengthIcon, MoreIcon, PriceIcon, RedoIcon, SortIcon, TextureGlyph, UndoIcon } from './FilterIcons';
 
 /*
  * The filter dock on the shop page.
@@ -183,7 +183,7 @@ export function FilterDock({
         pressed: f.price.includes(b.id),
         onPick: () => set({ price: toggle(f.price, b.id) }),
       }));
-    // more: sort and the "new in" switch
+    // more: sort order
     const sorts: [Sort, string][] = [
       ['featured', 'Featured'],
       ['low', 'Price up'],
@@ -197,7 +197,6 @@ export function FilterDock({
         pressed: f.sort === id,
         onPick: () => set({ sort: id }),
       })),
-      { key: 'new', label: 'New in', icon: <SparkleIcon />, pressed: f.newOnly, onPick: () => set({ newOnly: !f.newOnly }) },
     ];
   };
 
