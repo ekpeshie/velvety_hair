@@ -5,7 +5,7 @@
  * browser can be faked. This asks Paystack directly, with the SECRET key, and checks the
  * payment matches what the bag should cost at our own prices.
  *
- * Body:    { reference: string, lines: { slug, length, qty }[], delivery: 'lagos' | 'nationwide' | 'pickup' }
+ * Body:    { reference: string, lines: { slug, length, qty }[], delivery: string, country: 'NG' | 'GB' | ... }
  * Replies: 200 { status: 'paid', reference, amount, paidAt, channel, test }
  *          402 { status: 'unpaid', message }    Paystack has no successful payment for this reference
  *          409 { status: 'mismatch', message }  paid, but not the amount this bag costs
@@ -41,7 +41,7 @@ export async function POST(request: Request): Promise<Response> {
   const secret = process.env.PAYSTACK_SECRET_KEY;
   if (!secret) return json(503, { status: 'error', message: 'Payments are not set up on the server yet.' });
 
-  let body: { reference?: unknown; lines?: unknown; delivery?: unknown };
+  let body: { reference?: unknown; lines?: unknown; delivery?: unknown; country?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -49,7 +49,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   const reference = typeof body.reference === 'string' && /^[A-Za-z0-9_-]{6,64}$/.test(body.reference) ? body.reference : null;
-  const order = priceOrder(body.lines, body.delivery);
+  const order = priceOrder(body.lines, body.delivery, body.country);
   if (!reference || !order) return json(400, { status: 'error', message: 'Bad request.' });
 
   let result: PaystackVerify;

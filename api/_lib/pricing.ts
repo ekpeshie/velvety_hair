@@ -2,12 +2,14 @@
  * Works out what a bag costs from the catalogue, never from prices the browser sends.
  * (Files in api/_lib are helpers, not endpoints: Vercel skips names starting with _.)
  */
-import { DELIVERY, getProduct } from '../../src/data/products.js';
+import { deliveryOptions, getProduct } from '../../src/data/products.js';
+import { COUNTRY_CODES } from '../../src/data/countries.js';
 
 export type PricedOrder = { subtotal: number; fee: number; total: number };
 
-export function priceOrder(lines: unknown, delivery: unknown): PricedOrder | null {
-  const option = DELIVERY.find((d) => d.id === delivery);
+export function priceOrder(lines: unknown, delivery: unknown, country: unknown): PricedOrder | null {
+  if (typeof country !== 'string' || !COUNTRY_CODES.includes(country)) return null;
+  const option = deliveryOptions(country).find((d) => d.id === delivery);
   if (!option || !Array.isArray(lines) || lines.length === 0 || lines.length > 50) return null;
 
   let subtotal = 0;

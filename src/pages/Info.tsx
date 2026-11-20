@@ -15,7 +15,8 @@ const FAQ = [
   { q: 'Can I colour or bleach my unit?', a: 'Yes, it is 100% human hair. For big changes like bleaching we recommend a professional colourist, and a deep condition afterwards.' },
   { q: 'How long will my unit last?', a: 'It depends on how often you wear it and how you care for it. Follow our care guide and wear it in rotation to get the longest life from it.' },
   { q: 'Do you install?', a: 'Yes. Send us a message on Instagram to book a slot. (Sample answer: add your booking details here.)' },
-  { q: 'Delivery and returns', a: 'Lagos dispatch takes 1 to 2 working days and nationwide courier 2 to 5. Unworn units with the lace uncut can be returned within 7 days. (Sample policy: replace with your own.)' },
+  { q: 'Delivery and returns', a: 'Lagos dispatch takes 1 to 2 working days and nationwide courier 2 to 5. Outside Nigeria we ship with DHL Express or FedEx, or we can arrange delivery with you. Unworn units with the lace uncut can be returned within 7 days. (Sample policy: replace with your own.)' },
+  { q: 'Can I pay from outside Nigeria?', a: 'Yes. Switch the currency at the top of the page to see prices in pounds, US dollars or Canadian dollars. Payment is taken in naira by Paystack, which accepts cards from any country, and your bank converts it at its own rate.' },
 ];
 
 export function Care() {

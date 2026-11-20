@@ -167,11 +167,50 @@ export const lengthsOf = (p: Product) => Object.keys(p.prices).map(Number).sort(
 
 export const fromPrice = (p: Product) => Math.min(...Object.values(p.prices));
 
-/** Delivery options. SAMPLE fees: set your own. */
-export const DELIVERY = [
+/*
+ * Delivery. All fees are in naira, because every payment is taken in naira.
+ * SAMPLE fees: set your own. Nigeria gets the local options; every other country
+ * gets the international ones, priced by shipping zone.
+ */
+export type DeliveryOption = {
+  id: string;
+  label: string;
+  detail: string;
+  fee: number;
+  /** the cost is agreed with the customer later and is not part of this payment */
+  arranged?: boolean;
+};
+
+const NIGERIA: DeliveryOption[] = [
   { id: 'lagos', label: 'Lagos dispatch', detail: '1 to 2 working days', fee: 3500 },
   { id: 'nationwide', label: 'Nationwide courier', detail: '2 to 5 working days', fee: 7500 },
   { id: 'pickup', label: 'Studio pickup', detail: 'We will message you when it is ready', fee: 0 },
-] as const;
+];
 
-export type DeliveryId = (typeof DELIVERY)[number]['id'];
+export type Zone = 'europe' | 'north-america' | 'world';
+
+/** UK, EU and the rest of Europe. Everything not listed here or in North America is 'world'. */
+const EUROPE = new Set(
+  'GB IE FR DE NL BE LU ES PT IT AT CH LI DK SE NO FI IS PL CZ SK HU SI HR RO BG GR CY MT EE LV LT MC SM VA AD'.split(' '),
+);
+const NORTH_AMERICA = new Set(['US', 'CA']);
+
+export const zoneFor = (country: string): Zone => (EUROPE.has(country) ? 'europe' : NORTH_AMERICA.has(country) ? 'north-america' : 'world');
+
+const INTERNATIONAL: { id: string; label: string; detail: string; fees: Record<Zone, number>; arranged?: boolean }[] = [
+  { id: 'dhl', label: 'DHL Express', detail: '3 to 6 working days, tracked', fees: { europe: 85000, 'north-america': 95000, world: 110000 } },
+  { id: 'fedex', label: 'FedEx International', detail: '4 to 7 working days, tracked', fees: { europe: 80000, 'north-america': 90000, world: 105000 } },
+  {
+    id: 'arrange',
+    label: 'Arrange delivery with us',
+    detail: 'We will message you to agree the courier and cost. Delivery is not included in this payment.',
+    fees: { europe: 0, 'north-america': 0, world: 0 },
+    arranged: true,
+  },
+];
+
+export function deliveryOptions(country: string): DeliveryOption[] {
+  if (country === 'NG') return NIGERIA;
+  const zone = zoneFor(country);
+  return INTERNATIONAL.map(({ fees, ...o }) => ({ ...o, fee: fees[zone] }));
+}

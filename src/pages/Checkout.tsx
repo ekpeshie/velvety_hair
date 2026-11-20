@@ -1,7 +1,9 @@
-import { useState, type FormEvent } from 'react';
-import { DELIVERY, getProduct, type DeliveryId } from '../data/products';
+import { useMemo, useState, type FormEvent } from 'react';
+import { deliveryOptions, getProduct, type DeliveryOption } from '../data/products';
+import { COUNTRY_CODES, countriesForSelect, countryName } from '../data/countries';
 import { lineTotal, useCart } from '../store/cart';
 import { money } from '../lib/format';
+import { useCurrency } from '../lib/currency';
 import { Link, navigate } from '../lib/router';
 import { PAYSTACK_KEY, payWithPaystack, verifyPayment } from '../lib/paystack';
 import { saveOrder } from '../lib/orders';
@@ -13,14 +15,45 @@ const STATES = [
   'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto', 'Taraba', 'Yobe', 'Zamfara',
 ];
 
-type Form = { name: string; email: string; phone: string; address: string; city: string; state: string; notes: string };
-const EMPTY: Form = { name: '', email: '', phone: '', address: '', city: '', state: 'Lagos', notes: '' };
+type Form = {
+  name: string;
+  email: string;
+  phone: string;
+  country: string;
+  address: string;
+  city: string;
+  state: string;
+  region: string;
+  postcode: string;
+  notes: string;
+};
 
-function validate(f: Form, delivery: DeliveryId) {
+/** A best guess at the shopper's country from their browser language, e.g. en-GB -> GB. */
+function guessCountry() {
+  const region = (navigator.languages?.[0] ?? navigator.language ?? '').split('-')[1]?.toUpperCase();
+  return region && COUNTRY_CODES.includes(region) ? region : 'NG';
+}
+
+const empty = (): Form => ({
+  name: '',
+  email: '',
+  phone: '',
+  country: guessCountry(),
+  address: '',
+  city: '',
+  state: 'Lagos',
+  region: '',
+  postcode: '',
+  notes: '',
+});
+
+const feeText = (d: DeliveryOption) => (d.arranged ? 'Agreed later' : d.fee ? money(d.fee) : 'Free');
+
+function validate(f: Form, delivery: string) {
   const e: Partial<Record<keyof Form, string>> = {};
   if (f.name.trim().length < 2) e.name = 'Enter your full name.';
   if (!/^\S+@\S+\.\S+$/.test(f.email)) e.email = 'Enter a valid email so we can send your receipt.';
-  if (f.phone.replace(/\D/g, '').length < 10) e.phone = 'Enter a phone number we can call or WhatsApp.';
+  if (f.phone.replace(/\D/g, '').length < (f.country === 'NG' ? 10 : 7)) e.phone = 'Enter a phone number we can call or WhatsApp.';
   if (delivery !== 'pickup') {
     if (f.address.trim().length < 5) e.address = 'Enter your street address.';
     if (f.city.trim().length < 2) e.city = 'Enter your city or area.';
@@ -30,13 +63,18 @@ function validate(f: Form, delivery: DeliveryId) {
 
 export function Checkout() {
   const { lines, subtotal, clear } = useCart();
-  const [form, setForm] = useState<Form>(EMPTY);
-  const [delivery, setDelivery] = useState<DeliveryId>('lagos');
+  const { code: currency, convert } = useCurrency();
+  const [form, setForm] = useState<Form>(empty);
+  const options = deliveryOptions(form.country);
+  const [picked, setDelivery] = useState('');
+  // Changing country swaps the delivery list; fall back to its first option.
+  const delivery = options.some((d) => d.id === picked) ? picked : options[0].id;
+  const countries = useMemo(countriesForSelect, []);
   const [errors, setErrors] = useState<Partial<Record<keyof Form, string>>>({});
   const [busy, setBusy] = useState<false | 'paying' | 'confirming'>(false);
   const [payError, setPayError] = useState('');
 
-  const option = DELIVERY.find((d) => d.id === delivery)!;
+  const option = options.find((d) => d.id === delivery)!;
   const total = subtotal + option.fee;
   const set = (k: keyof Form) => (e: { target: { value: string } }) => setForm({ ...form, [k]: e.target.value });
 
@@ -65,7 +103,12 @@ export function Checkout() {
     setBusy('paying');
     setPayError('');
     const reference = 'VH' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).slice(2, 6).toUpperCase();
-    const address = delivery === 'pickup' ? '' : `${form.address}, ${form.city}, ${form.state}`;
+    const address =
+      delivery === 'pickup'
+        ? ''
+        : form.country === 'NG'
+          ? `${form.address}, ${form.city}, ${form.state}`
+          : [form.address, form.city, form.region, form.postcode, countryName(form.country)].map((x) => x.trim()).filter(Boolean).join(', ');
     let paid = false;
     let test = false;
     if (PAYSTACK_KEY) {
@@ -95,7 +138,7 @@ export function Checkout() {
       }
       setBusy('confirming');
       try {
-        const v = await verifyPayment(reference, lines, delivery);
+        const v = await verifyPayment(reference, lines, delivery, form.country);
         paid = true;
         test = v.test;
       } catch {
@@ -146,26 +189,49 @@ export function Checkout() {
               {field('name', 'Full name', { autoComplete: 'name' })}
               <div className="field-row">
                 {field('email', 'Email', { type: 'email', autoComplete: 'email', inputMode: 'email' })}
-                {field('phone', 'Phone (WhatsApp)', { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: '080...' })}
+                {field('phone', 'Phone (WhatsApp)', { type: 'tel', autoComplete: 'tel', inputMode: 'tel', placeholder: form.country === 'NG' ? '080...' : 'With country code, e.g. +44...' })}
               </div>
             </fieldset>
 
             <fieldset className="panel">
               <legend className="panel-title">Delivery</legend>
+              <div className="field">
+                <label htmlFor="f-country">Country</label>
+                <select id="f-country" value={form.country} onChange={set('country')} autoComplete="country">
+                  {countries.map((c) => (
+                    <option key={c.code} value={c.code}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
               <div className="options">
-                {DELIVERY.map((d) => (
+                {options.map((d) => (
                   <label key={d.id} className={`option ${delivery === d.id ? 'is-active' : ''}`}>
                     <input type="radio" name="delivery" value={d.id} checked={delivery === d.id} onChange={() => setDelivery(d.id)} />
                     <span className="option-text">
                       <span className="option-label">{d.label}</span>
                       <span className="muted small">{d.detail}</span>
                     </span>
-                    <span className="option-fee">{d.fee ? money(d.fee) : 'Free'}</span>
+                    <span className="option-fee">{feeText(d)}</span>
                   </label>
                 ))}
               </div>
 
-              {delivery !== 'pickup' && (
+              {delivery !== 'pickup' && form.country !== 'NG' && (
+                <>
+                  {field('address', 'Street address', { autoComplete: 'street-address' })}
+                  <div className="field-row">
+                    {field('city', 'Town or city', { autoComplete: 'address-level2' })}
+                    {field('region', 'State, province or county (optional)', { autoComplete: 'address-level1' })}
+                  </div>
+                  <div className="field-row">
+                    {field('postcode', 'Postcode or ZIP (optional)', { autoComplete: 'postal-code' })}
+                  </div>
+                </>
+              )}
+
+              {delivery !== 'pickup' && form.country === 'NG' && (
                 <>
                   {field('address', 'Street address', { autoComplete: 'street-address' })}
                   <div className="field-row">
@@ -217,12 +283,22 @@ export function Checkout() {
               </div>
               <div className="row-between">
                 <span>{option.label}</span>
-                <span>{option.fee ? money(option.fee) : 'Free'}</span>
+                <span>{feeText(option)}</span>
               </div>
               <div className="row-between total">
                 <span>Total</span>
                 <span>{money(total)}</span>
               </div>
+              {currency !== 'NGN' && (
+                <p className="muted small fx-note">
+                  About {new Intl.NumberFormat('en', { style: 'currency', currency, maximumFractionDigits: 0 }).format(convert(total, currency))}. You pay in naira and your
+                  bank sets the exact rate. Rates by{' '}
+                  <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener noreferrer">
+                    Exchange Rate API
+                  </a>
+                  .
+                </p>
+              )}
             </div>
             <p className="sr-only" aria-live="polite">
               {busy === 'confirming' ? 'Confirming your payment' : ''}
@@ -236,7 +312,7 @@ export function Checkout() {
               {busy === 'confirming' ? 'Confirming payment…' : busy ? 'Processing…' : PAYSTACK_KEY ? `Pay ${money(total)}` : `Place order · ${money(total)}`}
             </button>
             <p className="muted small center">
-              {PAYSTACK_KEY ? 'Secure payment by Paystack. Cards, bank transfer and USSD.' : 'Demo mode: no payment is taken. Add a Paystack key to go live.'}
+              {PAYSTACK_KEY ? 'Secure payment by Paystack. Cards from any country, bank transfer and USSD.' : 'Demo mode: no payment is taken. Add a Paystack key to go live.'}
             </p>
           </aside>
         </form>

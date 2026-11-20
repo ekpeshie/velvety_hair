@@ -14,7 +14,8 @@ React 18 + TypeScript + Vite. No UI library, no router library, no CSS framework
 - Buttons are pills: `.btn`, `.btn-primary`, `.btn-ghost`. One primary per view.
 - Copy voice: warm, short, sentence case. No em-dashes. No exclamation marks.
 - Navigation: use `Link` and `navigate` from `src/lib/router.tsx`, never raw `<a href="/...">` for internal links.
-- Prices are whole naira numbers; format with `money()` from `src/lib/format.ts`.
+- Prices are whole naira numbers. Anything charged (checkout, order, Paystack) is shown in naira with `money()` from `src/lib/format.ts`. Browsing prices (cards, product page, line-up, bag) use `useMoney()` from `src/lib/currency.tsx`, which follows the shopper's chosen currency (NGN, GBP, USD, CAD). Payment is always taken in naira.
+- Delivery options and fees live in `deliveryOptions()` in `src/data/products.ts` (Nigeria, or DHL / FedEx / arrange-with-us by zone abroad). The server (`api/_lib/pricing.ts`) prices orders from the same code, so change fees there only.
 - Asset URLs go through `asset()` so both build modes work.
 - Accessibility: real buttons and labels, 44px touch targets, visible focus, text contrast 4.5:1.
 

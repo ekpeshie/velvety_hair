@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { PRODUCTS, TEXTURES, getProduct, lengthsOf, type Product } from '../data/products';
 import { Link } from '../lib/router';
-import { money } from '../lib/format';
+import { useMoney } from '../lib/currency';
 import { useCart } from '../store/cart';
 import { ProductCard } from '../components/ProductCard';
 import { ProductRail } from '../components/ProductRail';
@@ -53,6 +53,7 @@ export function ProductPage({ slug }: { slug: string }) {
 }
 
 function ProductInfo({ product }: { product: Product }) {
+  const money = useMoney();
   const { add, setOpen } = useCart();
   const [length, setLength] = useState(product.defaultLength);
   const [qty, setQty] = useState(1);
@@ -142,7 +143,7 @@ function ProductInfo({ product }: { product: Product }) {
       </details>
       <details className="acc">
         <summary>Delivery and returns</summary>
-        <p>Lagos dispatch in 1 to 2 working days, nationwide in 2 to 5. Unworn units with the lace uncut can be returned within 7 days. (Sample policy: set your own.)</p>
+        <p>Lagos dispatch in 1 to 2 working days, nationwide in 2 to 5. We ship worldwide with DHL Express and FedEx, or we can arrange delivery with you. Unworn units with the lace uncut can be returned within 7 days. (Sample policy: set your own.)</p>
       </details>
     </div>
   );

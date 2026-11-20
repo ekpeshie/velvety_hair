@@ -1,6 +1,7 @@
 import { type Product, fromPrice } from '../data/products';
 import { Link } from '../lib/router';
-import { asset, money } from '../lib/format';
+import { asset } from '../lib/format';
+import { useMoney } from '../lib/currency';
 import { TextureArt } from './TextureArt';
 
 export function ProductImage({ product, eager }: { product: Product; eager?: boolean }) {
@@ -17,6 +18,7 @@ export function ProductImage({ product, eager }: { product: Product; eager?: boo
 }
 
 export function ProductCard({ product }: { product: Product }) {
+  const money = useMoney();
   return (
     <article className="card">
       <Link to={`/product/${product.slug}`} className="card-link" aria-label={`${product.name}, from ${money(fromPrice(product))}`}>

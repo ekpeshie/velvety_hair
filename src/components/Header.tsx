@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, usePath } from '../lib/router';
 import { useCart } from '../store/cart';
+import { CURRENCIES, useCurrency, type CurrencyCode } from '../lib/currency';
 import { asset } from '../lib/format';
 import { BagIcon, CloseIcon, MenuIcon } from './Icons';
 
@@ -13,6 +14,7 @@ const NAV = [
 
 export function Header() {
   const { count, setOpen } = useCart();
+  const { code, setCode } = useCurrency();
   const path = usePath();
   const [menu, setMenu] = useState(false);
   useEffect(() => setMenu(false), [path]);
@@ -35,6 +37,16 @@ export function Header() {
               </Link>
             ))}
           </nav>
+          <label className="currency">
+            <span className="sr-only">Show prices in</span>
+            <select value={code} onChange={(e) => setCode(e.target.value as CurrencyCode)}>
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </label>
           <button className="icon-btn bag-btn" onClick={() => setOpen(true)} aria-label={`Open bag, ${count} item${count === 1 ? '' : 's'}`}>
             <BagIcon />
             {count > 0 && <span className="bag-count">{count}</span>}

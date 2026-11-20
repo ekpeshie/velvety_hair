@@ -1,12 +1,13 @@
 import { useEffect, useRef } from 'react';
 import { getProduct } from '../data/products';
 import { lineTotal, useCart } from '../store/cart';
-import { money } from '../lib/format';
+import { useCurrency } from '../lib/currency';
 import { Link, navigate } from '../lib/router';
 import { ProductImage } from './ProductCard';
 import { CloseIcon, MinusIcon, PlusIcon } from './Icons';
 
 export function CartDrawer() {
+  const { format: money, code } = useCurrency();
   const { open, setOpen, lines, setQty, remove, subtotal, count } = useCart();
   const closeRef = useRef<HTMLButtonElement>(null);
 
@@ -85,7 +86,9 @@ export function CartDrawer() {
                 <span>Subtotal</span>
                 <span className="price">{money(subtotal)}</span>
               </div>
-              <p className="muted small">Delivery is worked out at checkout.</p>
+              <p className="muted small">
+                Delivery is worked out at checkout.{code !== 'NGN' && ' Prices are a guide: you pay in naira.'}
+              </p>
               <button
                 className="btn btn-primary btn-block"
                 tabIndex={open ? 0 : -1}

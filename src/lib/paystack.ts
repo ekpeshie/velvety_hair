@@ -68,13 +68,13 @@ export async function payWithPaystack(opts: {
 export type Verified = { status: 'paid'; reference: string; amount: number; paidAt: string | null; channel: string; test: boolean };
 
 /** Ask our server to confirm the payment with Paystack. Throws with a customer-facing message if it cannot. */
-export async function verifyPayment(reference: string, lines: CartLine[], delivery: string): Promise<Verified> {
+export async function verifyPayment(reference: string, lines: CartLine[], delivery: string, country: string): Promise<Verified> {
   let res: Response;
   try {
     res = await fetch('/api/verify', {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ reference, lines: lines.map(({ slug, length, qty }) => ({ slug, length, qty })), delivery }),
+      body: JSON.stringify({ reference, lines: lines.map(({ slug, length, qty }) => ({ slug, length, qty })), delivery, country }),
     });
   } catch {
     throw new Error('connection');

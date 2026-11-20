@@ -1,7 +1,8 @@
 import { useEffect, useLayoutEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { PRODUCTS, TEXTURES, fromPrice } from '../data/products';
 import { Link } from '../lib/router';
-import { asset, money } from '../lib/format';
+import { asset } from '../lib/format';
+import { useMoney } from '../lib/currency';
 import { ProductImage } from './ProductCard';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from './Icons';
 
@@ -35,6 +36,7 @@ let introPlayed = false;
 type Phase = 'intro' | 'morph' | 'lineup';
 
 export function HeroStage() {
+  const money = useMoney();
   const stageRef = useRef<HTMLElement>(null);
   const introRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLUListElement>(null);
