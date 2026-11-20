@@ -4,7 +4,7 @@ React 18 + TypeScript + Vite. No UI library, no router library, no CSS framework
 
 ## Commands
 - `npm run dev`: dev server
-- `npm run build`: type-check and build (must pass before you finish)
+- `npm run build`: type-check, build, then prerender every public page to HTML (must pass before you finish)
 - `npm run build:preview`: hash-routed build for static previews
 
 ## Conventions
@@ -18,10 +18,10 @@ React 18 + TypeScript + Vite. No UI library, no router library, no CSS framework
 - Prices are whole naira numbers. Anything charged (checkout, order, Paystack) is shown in naira with `money()` from `src/lib/format.ts`. Browsing prices (cards, product page, line-up, bag) use `useMoney()` from `src/lib/currency.tsx`, which follows the shopper's chosen currency (NGN, GBP, USD, CAD). Payment is always taken in naira.
 - Delivery options and fees live in `deliveryOptions()` in `src/data/products.ts` (Nigeria, or DHL / FedEx / arrange-with-us by zone abroad). The server (`api/_lib/pricing.ts`) prices orders from the same code, so change fees there only.
 - Asset URLs go through `asset()` so both build modes work.
+- SEO: every public page is prerendered at build time (`src/entry-server.tsx` + `scripts/prerender.mjs`) and served by Vercel with `cleanUrls`. Titles, descriptions, canonicals, share tags and JSON-LD come from `metaFor()` in `src/lib/seo.ts`; a new public page needs an entry there and in `publicPaths()` (which also feeds `sitemap.xml`). Code that runs while rendering must not touch `window`, `document` or `localStorage` without a `typeof window` guard (Node has its own `navigator`, so do not test that).
 - Accessibility: real buttons and labels, 44px touch targets, visible focus, text contrast 4.5:1.
 
 ## Not done yet (good next tasks)
 - Server-side Paystack verification and order storage (e.g. a Vercel function + database)
 - Real product photos and a multi-image gallery on the product page
 - Install booking flow
-- SEO: per-page meta tags, or move to a framework with server rendering if search traffic matters

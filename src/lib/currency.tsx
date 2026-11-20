@@ -36,6 +36,7 @@ const fmt = (code: string) => {
 };
 
 function guess(): CurrencyCode {
+  if (typeof window === 'undefined') return 'NGN'; // build-time render: prices in naira
   try {
     const saved = localStorage.getItem(STORE_KEY);
     if (CURRENCIES.some((c) => c.code === saved)) return saved as CurrencyCode;

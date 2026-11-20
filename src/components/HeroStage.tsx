@@ -26,8 +26,11 @@ const STEP_MS = 3200;
 const SETTLE_MS = 140;
 const EASE = 'cubic-bezier(0.7, 0, 0.2, 1)';
 
+// useLayoutEffect in the browser; plain useEffect when the page is built ahead of time.
+const useIsoLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+
 const pad = (n: number) => String(n).padStart(2, '0');
-const reducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const reducedMotion = () => typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const noteFor = (id: string) => TEXTURES.find((t) => t.id === id)?.label ?? '';
 
 let introPlayed = false;
@@ -47,7 +50,7 @@ export function HeroStage() {
   const [hovering, setHovering] = useState(false);
   const [focused, setFocused] = useState(false);
   const [touching, setTouching] = useState(false);
-  const [hidden, setHidden] = useState(() => document.hidden);
+  const [hidden, setHidden] = useState(() => typeof document !== 'undefined' && document.hidden);
 
   const cards = () => Array.from(rowRef.current?.children ?? []) as HTMLElement[];
 
@@ -118,9 +121,8 @@ export function HeroStage() {
   }, [phase]);
 
   // Coming back to Home: line the row up on the first unit without animating.
-  useLayoutEffect(() => {
+  useIsoLayoutEffect(() => {
     if (phase === 'lineup') scrollToCard(active, false);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- first paint only
   }, []);
 
   // Pause when the tab is in the background.
@@ -180,7 +182,7 @@ export function HeroStage() {
             alt={CAMPAIGN_ALT}
             width="1400"
             height="1400"
-            fetchPriority="high"
+            {...{ fetchpriority: 'high' }}
           />
           {phase === 'intro' && (
             <>

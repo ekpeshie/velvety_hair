@@ -54,8 +54,9 @@ export function navigate(path: string, opts: { replace?: boolean; keepScroll?: b
 
 const RouteContext = createContext('/');
 
-export function RouterProvider({ children }: { children: ReactNode }) {
-  const [path, setPath] = useState(currentPath);
+/** `initialPath` is for build-time rendering, where there is no browser address bar. */
+export function RouterProvider({ children, initialPath }: { children: ReactNode; initialPath?: string }) {
+  const [path, setPath] = useState(() => initialPath ?? currentPath());
   useEffect(() => {
     const update = () => setPath(currentPath());
     window.addEventListener('popstate', update);

@@ -29,8 +29,9 @@ npm run build      # production build in dist/
 5. **International shoppers.** A switcher in the header shows prices in naira, pounds, US dollars or Canadian dollars, using daily rates from `api/rates.ts` (ExchangeRate-API, no key needed). Payment is always taken in naira; checkout shows the approximate amount in the shopper's currency. Ask Paystack to enable international cards on your account if it is not already on.
 6. **How payment is checked.** After the Paystack popup says paid, checkout calls `api/verify.ts`, a Vercel function. It asks Paystack, using the secret key, whether that reference really succeeded, and checks the amount against the prices in `src/data/products.ts`. Only then does the customer see a confirmed order. Each payment carries the items, delivery method, address and notes, so every order is visible in the Paystack dashboard. Still to do: store orders in a database, and add a Paystack webhook so a payment is recorded even if the customer closes the page before confirmation.
 7. **Newsletter.** Wire the footer form in `src/components/Footer.tsx` to your email tool.
-8. **Policies.** Replace the sample delivery and returns text in `src/pages/Product.tsx` and `src/pages/Info.tsx`.
-9. **Deploy.** Vercel or Netlify. `vercel.json` and `public/_redirects` already send every path to `index.html`.
+8. **Search and sharing.** Every public page is built as real HTML with its own title, description, share image and structured data (`src/lib/seo.ts`), plus `sitemap.xml` and `robots.txt`. Add the site to Google Search Console and submit `https://www.velvetyhairs.store/sitemap.xml`.
+9. **Policies.** Replace the sample delivery and returns text in `src/pages/Product.tsx` and `src/pages/Info.tsx`.
+10. **Deploy.** Vercel or Netlify. `vercel.json` and `public/_redirects` already send every path to `index.html`.
 
 ## Structure
 
@@ -43,6 +44,9 @@ src/
   lib/orders.ts         last order for the confirmation page
   components/           Header, Footer, CartDrawer, HeroStage, ProductCard, ProductGallery, FilterDock, TextureArt, Icons
   lib/filters.ts        shop filters: options, matching, sorting
+  lib/seo.ts            page titles, descriptions, share tags, structured data
+  entry-server.tsx      renders a page to HTML at build time
+scripts/prerender.mjs   writes each page, sitemap.xml and robots.txt into dist/
   pages/                Home, Shop, Product, Checkout, Order, Info (care + FAQ), NotFound
   styles.css            all styles, brand tokens at the top
 api/

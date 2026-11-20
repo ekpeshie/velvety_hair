@@ -7,3 +7,4 @@ dist-preview
 .claude/
 .DS_Store
 .vercel
+dist-ssr

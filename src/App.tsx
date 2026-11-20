@@ -10,29 +10,28 @@ import { Checkout } from './pages/Checkout';
 import { OrderConfirmed } from './pages/Order';
 import { Care, Faq } from './pages/Info';
 import { NotFound } from './pages/NotFound';
-import { getProduct } from './data/products';
+import { metaFor, applyHead } from './lib/seo';
 
-function route(path: string): { page: JSX.Element; title: string } {
+function route(path: string): { page: JSX.Element } {
   let m;
-  if (path === '/' || path === '') return { page: <Home />, title: 'Premium human-hair wigs' };
-  if (path === '/shop') return { page: <Shop />, title: 'Shop all units' };
-  if ((m = match('/shop/:filter', path))) return { page: <Shop key={m.filter} filter={m.filter} />, title: 'Shop' };
+  if (path === '/' || path === '') return { page: <Home /> };
+  if (path === '/shop') return { page: <Shop /> };
+  if ((m = match('/shop/:filter', path))) return { page: <Shop key={m.filter} filter={m.filter} /> };
   if ((m = match('/product/:slug', path)))
     // Keyed so the gallery, length and quantity start fresh for each unit.
-    return { page: <ProductPage key={m.slug} slug={m.slug} />, title: getProduct(m.slug)?.name ?? 'Not found' };
-  if (path === '/checkout') return { page: <Checkout />, title: 'Checkout' };
-  if ((m = match('/order/:id', path))) return { page: <OrderConfirmed id={m.id} />, title: 'Order confirmed' };
-  if (path === '/care') return { page: <Care />, title: 'Wig care' };
-  if (path === '/faq') return { page: <Faq />, title: 'FAQ' };
-  return { page: <NotFound />, title: 'Not found' };
+    return { page: <ProductPage key={m.slug} slug={m.slug} /> };
+  if (path === '/checkout') return { page: <Checkout /> };
+  if ((m = match('/order/:id', path))) return { page: <OrderConfirmed id={m.id} /> };
+  if (path === '/care') return { page: <Care /> };
+  if (path === '/faq') return { page: <Faq /> };
+  return { page: <NotFound /> };
 }
 
 export default function App() {
   const path = usePath();
-  const { page, title } = route(path);
-  useEffect(() => {
-    document.title = `${title} · Velvety Hairs`;
-  }, [title]);
+  const { page } = route(path);
+  // Title, description, canonical, share tags and structured data for this page.
+  useEffect(() => applyHead(metaFor(path)), [path]);
 
   return (
     <>
