@@ -551,13 +551,13 @@ main:focus {
   opacity: 0;
   transform: translateY(16px);
 }
-.stage.is-morph .stage-card {
+.stage.is-reveal .stage-card {
   transition-delay: calc(350ms + var(--i) * 60ms);
 }
-.stage.is-morph .stage-head {
+.stage.is-reveal .stage-head {
   transition-delay: 500ms;
 }
-.stage.is-morph .stage-foot {
+.stage.is-reveal .stage-foot {
   transition-delay: 700ms;
 }
 .stage-head {

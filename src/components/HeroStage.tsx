@@ -7,22 +7,21 @@ import { ProductImage } from './ProductCard';
 import { ChevronLeftIcon, ChevronRightIcon, PauseIcon, PlayIcon } from './Icons';
 
 /*
- * The home page hero. It opens on the campaign photo, then the photo shrinks into
- * the first place of a line-up of every unit, and the line-up steps through them.
+ * The home page hero. It opens on the campaign photo, then the photo lifts away like
+ * a curtain to reveal a line-up of every unit, and the line-up steps through them.
+ * The campaign photo is a brand image, not a product photo, so it never appears in
+ * the line-up itself.
  *
  * intro  -> campaign photo, full stage, for INTRO_MS (click or "Enter" skips)
- * morph  -> the photo flies into the first card while the rest of the line-up arrives
+ * reveal -> the photo wipes up and away while the units rise into place
  * lineup -> one unit in the spotlight at a time, advancing every STEP_MS
  *
  * The intro plays once per page load, not every time you come back to Home.
  */
 
 const INTRO_MS = 3200;
-// The campaign model wears this unit, so its card shows the campaign photo and the
-// intro lands on it exactly. It must be the first unit in PRODUCTS.
-const COVER = { slug: 'body-wave', src: 'images/campaign-hero.jpg' };
 const CAMPAIGN_ALT = 'Model in a cocoa dress wearing glossy brown body wave hair, with the velvety. HAIRS logo';
-const MORPH_MS = 1000;
+const REVEAL_MS = 900;
 const STEP_MS = 3200;
 const SETTLE_MS = 140;
 const EASE = 'cubic-bezier(0.7, 0, 0.2, 1)';
@@ -33,7 +32,7 @@ const noteFor = (id: string) => TEXTURES.find((t) => t.id === id)?.label ?? '';
 
 let introPlayed = false;
 
-type Phase = 'intro' | 'morph' | 'lineup';
+type Phase = 'intro' | 'reveal' | 'lineup';
 
 export function HeroStage() {
   const money = useMoney();
@@ -84,54 +83,38 @@ export function HeroStage() {
     scrollToCard(n);
   };
 
-  // Shrink the campaign photo into the first card. The photo always fills the
-  // stage height and sits centred, so scaling it to the card's height and
-  // clipping it to the card's width lands exactly on the card's cover crop.
-  const startMorph = () => {
+  // Lift the campaign photo away: it wipes upward, drifting up a little as it goes,
+  // while the line-up rises in underneath (see .stage.is-reveal in styles.css).
+  const startReveal = () => {
     if (phase !== 'intro') return;
     introPlayed = true;
-    const stage = stageRef.current;
     const intro = introRef.current;
-    const first = cards()[0]?.querySelector<HTMLElement>('.stage-card-media');
-    if (!stage || !intro || !first || reducedMotion() || !intro.animate) {
+    const img = intro?.querySelector('img');
+    if (!intro || !img || reducedMotion() || !intro.animate) {
       setPhase('lineup');
       return;
     }
     scrollToCard(0, false);
-    const s = stage.getBoundingClientRect();
-    const c = first.getBoundingClientRect();
-    const scale = c.height / s.height;
-    const x = c.left - s.left;
-    const y = c.top - s.top;
-    const tx = x + c.width / 2 - (s.width / 2) * scale;
-    const ty = y + c.height / 2 - (s.height / 2) * scale;
-    const side = (s.width - c.width / scale) / 2;
-    const radius = parseFloat(getComputedStyle(first).borderTopLeftRadius) / scale;
-
-    setPhase('morph');
-    const anim = intro.animate(
-      [
-        { transform: 'translate(0, 0) scale(1)', clipPath: 'inset(0px 0px 0px 0px round 0px)' },
-        { transform: `translate(${tx}px, ${ty}px) scale(${scale})`, clipPath: `inset(0px ${side}px 0px ${side}px round ${radius}px)` },
-      ],
-      { duration: MORPH_MS, easing: EASE, fill: 'forwards' },
-    );
-    // The card underneath shows the same photo with the same crop, so a quick dissolve hides the swap.
-    const fadeOut = intro.animate([{ opacity: 1 }, { opacity: 1, offset: 0.78 }, { opacity: 0 }], { duration: MORPH_MS, fill: 'forwards' });
-    const fadeIn = first.animate([{ opacity: 0 }, { opacity: 0, offset: 0.7 }, { opacity: 1 }], { duration: MORPH_MS, fill: 'both' });
-    anim.onfinish = () => {
-      setPhase('lineup');
-      fadeOut.cancel();
-      fadeIn.cancel();
-    };
+    setPhase('reveal');
+    const curtain = intro.animate([{ clipPath: 'inset(0 0 0 0)' }, { clipPath: 'inset(0 0 100% 0)' }], {
+      duration: REVEAL_MS,
+      easing: EASE,
+      fill: 'forwards',
+    });
+    img.animate([{ transform: 'translateX(-50%) translateY(0)' }, { transform: 'translateX(-50%) translateY(-12%)' }], {
+      duration: REVEAL_MS,
+      easing: EASE,
+      fill: 'forwards',
+    });
+    curtain.onfinish = () => setPhase('lineup');
   };
 
   // Intro timer.
   useEffect(() => {
     if (phase !== 'intro') return;
-    const t = window.setTimeout(startMorph, INTRO_MS);
+    const t = window.setTimeout(startReveal, INTRO_MS);
     return () => window.clearTimeout(t);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- startMorph reads fresh refs
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- startReveal reads fresh refs
   }, [phase]);
 
   // Coming back to Home: line the row up on the first unit without animating.
@@ -191,7 +174,7 @@ export function HeroStage() {
       }}
     >
       {phase !== 'lineup' && (
-        <div ref={introRef} className="stage-intro" onClick={startMorph}>
+        <div ref={introRef} className="stage-intro" onClick={startReveal}>
           <img
             src={asset('images/campaign-hero.jpg')}
             alt={CAMPAIGN_ALT}
@@ -206,7 +189,7 @@ export function HeroStage() {
                 className="btn btn-on-dark stage-enter"
                 onClick={(e) => {
                   e.stopPropagation();
-                  startMorph();
+                  startReveal();
                 }}
               >
                 Enter the collection
@@ -245,11 +228,7 @@ export function HeroStage() {
               }}
             >
               <span className="stage-card-media">
-                {p.slug === COVER.slug ? (
-                  <img src={asset(COVER.src)} alt="" width="1400" height="1400" />
-                ) : (
-                  <ProductImage product={p} eager={i < 3} />
-                )}
+                <ProductImage product={p} eager={i < 3} />
               </span>
               <span className="stage-card-label" aria-hidden="true">
                 <span>{p.name}</span>

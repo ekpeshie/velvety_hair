@@ -53,7 +53,7 @@ export const PRODUCTS: Product[] = [
     prices: { 18: 165000, 20: 175000, 22: 185000, 24: 199000, 26: 215000 },
     defaultLength: 22,
     image: 'images/face-wide.jpg',
-    images: ['images/portrait-crop.jpg', 'images/campaign-hero.jpg'],
+    images: ['images/portrait-crop.jpg'],
     imagePosition: 'center 20%',
     badge: 'New in',
     blurb: 'Our signature unit. Soft S-waves, a lace that melts into your skin and a hairline that is already plucked.',
