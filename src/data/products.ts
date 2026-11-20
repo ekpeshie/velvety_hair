@@ -4,6 +4,8 @@
  * Most photos are free Unsplash demo stand-ins; sources are in public/images/CREDITS.md.
  * A product without `image` shows its texture artwork until you add a photo
  * (drop it in public/images and set `image: 'images/your-photo.jpg'`).
+ * More angles of the same unit (sides, back, close-ups) go in `images`; the product
+ * page shows `image` first, then these, as a swipeable gallery.
  */
 
 export type Texture = 'straight' | 'body-wave' | 'deep-wave' | 'water-wave' | 'curly' | 'bob';
@@ -20,6 +22,8 @@ export type Product = {
   prices: Record<number, number>;
   defaultLength: number;
   image?: string;
+  /** extra angles of this same unit, shown after `image` on the product page */
+  images?: string[];
   imagePosition?: string;
   /** background colour for the texture artwork shown until a photo is added */
   artGround?: string;
@@ -49,6 +53,7 @@ export const PRODUCTS: Product[] = [
     prices: { 18: 165000, 20: 175000, 22: 185000, 24: 199000, 26: 215000 },
     defaultLength: 22,
     image: 'images/face-wide.jpg',
+    images: ['images/portrait-crop.jpg', 'images/campaign-hero.jpg'],
     imagePosition: 'center 20%',
     badge: 'New in',
     blurb: 'Our signature unit. Soft S-waves, a lace that melts into your skin and a hairline that is already plucked.',
@@ -162,6 +167,9 @@ export const PRODUCTS: Product[] = [
 ];
 
 export const getProduct = (slug: string) => PRODUCTS.find((p) => p.slug === slug);
+
+/** Every photo of one unit, main photo first. */
+export const galleryOf = (p: Product) => [...(p.image ? [p.image] : []), ...(p.images ?? [])];
 
 export const lengthsOf = (p: Product) => Object.keys(p.prices).map(Number).sort((a, b) => a - b);
 

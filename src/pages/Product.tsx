@@ -4,7 +4,7 @@ import { Link } from '../lib/router';
 import { useMoney } from '../lib/currency';
 import { useCart } from '../store/cart';
 import { ProductCard } from '../components/ProductCard';
-import { ProductRail } from '../components/ProductRail';
+import { ProductGallery } from '../components/ProductGallery';
 import { CheckIcon, MinusIcon, PlusIcon } from '../components/Icons';
 import { NotFound } from './NotFound';
 
@@ -26,10 +26,9 @@ export function ProductPage({ slug }: { slug: string }) {
 
           <div className="pdp">
             <div className="pdp-stage">
-              <ProductRail slug={product.slug} />
+              <ProductGallery product={product} />
             </div>
-            {/* keyed so length, quantity and "Added" reset for each unit */}
-            <ProductInfo key={product.slug} product={product} />
+            <ProductInfo product={product} />
           </div>
         </div>
       </section>

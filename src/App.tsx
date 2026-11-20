@@ -18,8 +18,8 @@ function route(path: string): { page: JSX.Element; title: string } {
   if (path === '/shop') return { page: <Shop />, title: 'Shop all units' };
   if ((m = match('/shop/:filter', path))) return { page: <Shop key={m.filter} filter={m.filter} />, title: 'Shop' };
   if ((m = match('/product/:slug', path)))
-    // No key: the product rail stays mounted while you scroll from unit to unit.
-    return { page: <ProductPage slug={m.slug} />, title: getProduct(m.slug)?.name ?? 'Not found' };
+    // Keyed so the gallery, length and quantity start fresh for each unit.
+    return { page: <ProductPage key={m.slug} slug={m.slug} />, title: getProduct(m.slug)?.name ?? 'Not found' };
   if (path === '/checkout') return { page: <Checkout />, title: 'Checkout' };
   if ((m = match('/order/:id', path))) return { page: <OrderConfirmed id={m.id} />, title: 'Order confirmed' };
   if (path === '/care') return { page: <Care />, title: 'Wig care' };

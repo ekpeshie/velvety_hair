@@ -21,7 +21,7 @@ npm run build      # production build in dist/
 ## Go live checklist
 
 1. **Products.** Edit `src/data/products.ts`. Every name, price, spec and policy there is sample content.
-2. **Photos.** Put product photos in `public/images/` and set `image: 'images/your-file.jpg'` on each product. Products without a photo show brand texture artwork.
+2. **Photos.** Put product photos in `public/images/`. On each product, set `image` to the main photo and list more angles of the same unit (sides, back, close-ups) in `images`, e.g. `images: ['images/body-wave-side.jpg', 'images/body-wave-back.jpg']`. The product page shows them as a swipeable gallery with thumbnails. Products without a photo show brand texture artwork.
 3. **Delivery fees.** Set them in `src/data/products.ts`: the Nigeria options, and the DHL and FedEx fees for each zone (UK and Europe, US and Canada, rest of the world). All fees are in naira.
 4. **Payments.** Add two environment variables to the Vercel project (Settings, Environment Variables, for Production and Preview), then redeploy:
    - `VITE_PAYSTACK_PUBLIC_KEY`: your Paystack public key (`pk_test_...` while testing, `pk_live_...` when live). Without it, checkout runs in demo mode and takes no money.
@@ -41,7 +41,7 @@ src/
   lib/router.tsx        small router (path URLs; hash mode for previews)
   lib/paystack.ts       Paystack inline checkout
   lib/orders.ts         last order for the confirmation page
-  components/           Header, Footer, CartDrawer, ProductCard, TextureArt, Icons
+  components/           Header, Footer, CartDrawer, HeroStage, ProductCard, ProductGallery, TextureArt, Icons
   pages/                Home, Shop, Product, Checkout, Order, Info (care + FAQ), NotFound
   styles.css            all styles, brand tokens at the top
 api/
