@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { Analytics } from '@vercel/analytics/react';
 import { match, usePath } from './lib/router';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
@@ -49,6 +50,7 @@ export default function App() {
       <main id="main" tabIndex={-1}>{page}</main>
       <Footer />
       <CartDrawer />
+      <Analytics />
     </>
   );
 }
